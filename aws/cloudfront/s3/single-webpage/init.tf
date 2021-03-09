@@ -47,6 +47,8 @@ resource "aws_s3_bucket_object" "object" {
   key    = "index.html"
   source = "content/index.html"
   etag = filemd5("content/index.html")
+
+  depends_on = [aws_s3_bucket.statics]
 }
 
 resource "aws_cloudfront_origin_access_identity" "statics" {
@@ -59,7 +61,7 @@ resource "aws_cloudfront_distribution" "statics" {
     origin_id   = local.s3_origin_id
 
     s3_origin_config {
-      origin_access_identity = format("origin-access-identity/cloudfront/%s", aws_cloudfront_origin_access_identity.statics.id)
+      origin_access_identity = aws_cloudfront_origin_access_identity.statics.cloudfront_access_identity_path
     }
   }
 
@@ -70,7 +72,7 @@ resource "aws_cloudfront_distribution" "statics" {
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_cloudfront_origin_access_identity.statics.id
+    target_origin_id = local.s3_origin_id
 
     forwarded_values {
       query_string = false
@@ -93,7 +95,7 @@ resource "aws_cloudfront_distribution" "statics" {
   restrictions {
     geo_restriction {
       restriction_type = "whitelist"
-      locations        = ["SP","ES"]
+      locations        = ["ES"]
     }
   }
 
@@ -101,4 +103,15 @@ resource "aws_cloudfront_distribution" "statics" {
     Name        = format("%s-%s", local.environment, lower(random_string.bucket-name.result))
     Environment = local.environment
   }
+
+  depends_on = [aws_s3_bucket.statics]
+}
+
+
+output "cloudfront_domain_name" {
+  value = aws_cloudfront_distribution.statics.domain_name
+}
+
+output "cloudfront_hosted_zone_id" {
+  value = aws_cloudfront_distribution.statics.hosted_zone_id
 }
