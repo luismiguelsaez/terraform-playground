@@ -1,0 +1,56 @@
+{
+    "Parameters" : {
+        "AWSRegion" : {
+            "Type" : "String",
+            "Default" : "eu-west-1"
+        },
+        "VPCCidr" : {
+            "Type" : "String",
+            "Default" : "10.0.0.0/16",
+            "Description" : "Enter the CIDR block for the VPC. Default is 10.0.0.0/16."
+        }
+    },
+    "Mappings" : {
+        "ImageByRegion" : {
+          "eu-west-1" : {
+            "Id" : "ami-0d75330b9efa7072d"
+          }
+        }
+    },
+    "Resources" : {
+      "myVpc": {
+        "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+          "CidrBlock" : { "Ref" : "VPCCidr" },
+          "Tags" : [
+            {"Key": "Name", "Value": "Primary_CF_VPC"}
+          ]
+        }
+      },
+      "mySubnet": {
+        "Type" : "AWS::EC2::Subnet",
+        "Properties" : {
+            "AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "CidrBlock" : "10.0.1.0/24",
+            "MapPublicIpOnLaunch" : "False",
+            "Tags" : [{ "Key" : "stack", "Value" : "testing" }],
+            "VpcId" : { "Ref" : "myVpc" }
+        }
+      },
+      "myInstance": {
+        "Type" : "AWS::EC2::Instance",
+        "Properties" : {
+            "AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+            "InstanceType" : "t2.medium",
+            "ImageId" : { "Fn::FindInMap" : [ "ImageByRegion", { "Ref" : "AWS::Region" }, "Id"] },
+            "SubnetId" : { "Ref" : "mySubnet" },
+            "UserData" : { "Fn::Base64" :
+              { "Fn::Join" : ["", [
+                 "#!/bin/bash -xe\n",
+                 "echo Dummy UserData"
+              ]]}
+            }
+        }
+      }
+    }
+}

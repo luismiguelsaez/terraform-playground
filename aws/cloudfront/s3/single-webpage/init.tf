@@ -47,15 +47,31 @@ resource "aws_s3_bucket_object" "object" {
   key    = "index.html"
   source = "content/index.html"
   etag = filemd5("content/index.html")
-
-  depends_on = [aws_s3_bucket.statics]
 }
 
 resource "aws_cloudfront_origin_access_identity" "statics" {
   comment = "Origin identity for S3 bucket access"
 }
 
+resource "aws_acm_certificate" "alias" {
+  count = length(var.cloudfront_distribution_aliases)
+
+  domain_name       = var.cloudfront_distribution_aliases[count.index]
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Environment = local.environment
+  }
+}
+
 resource "aws_cloudfront_distribution" "statics" {
+
+  aliases = var.cloudfront_distribution_aliases
+
   origin {
     domain_name = aws_s3_bucket.statics.bucket_regional_domain_name
     origin_id   = local.s3_origin_id
@@ -89,6 +105,7 @@ resource "aws_cloudfront_distribution" "statics" {
   }
 
   viewer_certificate {
+    #acm_certificate_arn = ""
     cloudfront_default_certificate = true
   }
 
@@ -103,8 +120,6 @@ resource "aws_cloudfront_distribution" "statics" {
     Name        = format("%s-%s", local.environment, lower(random_string.bucket-name.result))
     Environment = local.environment
   }
-
-  depends_on = [aws_s3_bucket.statics]
 }
 
 
