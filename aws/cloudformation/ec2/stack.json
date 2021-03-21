@@ -109,7 +109,8 @@
         "Metadata": {
           "AWS::CloudFormation::Init" : {
             "configSets" : {
-              "InstallAndRun" : [ "Files", "Install", "Enable" ]
+              "Config" : [ "Files" ],
+              "InstallAndRun" : [ "Install", "Enable" ]
             },
             "Files" : {
               "ssh" : {
@@ -159,7 +160,7 @@
               {
                   "Ref": "AWS::Region"
               },
-              "         --configsets InstallAndRun ",
+              "         --configsets Config InstallAndRun ",
               "\n",
               "# Signal the status from cfn-init\n",
               "/opt/aws/bin/cfn-signal -e $? ",
