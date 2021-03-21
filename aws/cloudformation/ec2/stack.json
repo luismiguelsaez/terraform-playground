@@ -147,11 +147,11 @@
                   "content" : {
                     "Fn::Join" : [ "",
                       [
-                        "<html>",
-                        "<body>",
-                        "<h1>Hi there!</h1>",
-                        "</body>",
-                        "</html>"
+                        "<html>\n",
+                        "<body>\n",
+                        "<h1>Hi there!</h1>\n",
+                        "</body>\n",
+                        "</html>\n"
                       ]
                     ]
                   },
