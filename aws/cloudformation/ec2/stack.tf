@@ -1,5 +1,5 @@
-resource "aws_cloudformation_stack" "network" {
-  name = "networking-stack"
+resource "aws_cloudformation_stack" "main" {
+  name = "NetworkingTest"
 
   parameters = {
     VPCCidr = "10.0.0.0/16"
