@@ -17,14 +17,18 @@
           }
         }
     },
+    "Outputs" : {
+      "InstanceID" : {
+        "Description": "The Instance ID",  
+        "Value" : { "Ref" : "myInstance" }
+      }
+    },
     "Resources" : {
       "myVpc": {
         "Type" : "AWS::EC2::VPC",
         "Properties" : {
           "CidrBlock" : { "Ref" : "VPCCidr" },
-          "Tags" : [
-            {"Key": "Name", "Value": "Primary_CF_VPC"}
-          ]
+          "Tags" : [{ "Key" : "stack", "Value" : "testing" }]
         }
       },
       "mySubnet": {
@@ -37,6 +41,41 @@
             "VpcId" : { "Ref" : "myVpc" }
         }
       },
+      "myRouteTable" : {
+        "Type" : "AWS::EC2::RouteTable",
+        "Properties" : {
+          "VpcId" : { "Ref" : "myVpc" },
+          "Tags" : [{ "Key" : "stack", "Value" : "testing" }]
+        }
+      },
+      "myInternetGateway" : {
+        "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [{ "Key" : "stack", "Value" : "testing" }]
+        }
+      },
+      "myInternetGatewayAttachment" : {
+        "Type" : "AWS::EC2::VPCGatewayAttachment",
+        "Properties" : {
+            "InternetGatewayId" : { "Ref" : "myInternetGateway" },
+            "VpcId" : { "Ref" : "myVpc" }
+        }
+      },
+      "myRoute" : {
+        "Type" : "AWS::EC2::Route",
+        "Properties" : {
+          "RouteTableId" : { "Ref" : "myRouteTable" },
+          "DestinationCidrBlock" : "0.0.0.0/0",
+          "GatewayId" : { "Ref" : "myInternetGateway" }
+        }
+      },
+      "myRouteAssociation" : {
+        "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties" : {
+            "RouteTableId" : { "Ref" : "myRouteTable" },
+            "SubnetId" : { "Ref" : "mySubnet" }
+          }
+      },
       "myInstance": {
         "Type" : "AWS::EC2::Instance",
         "CreationPolicy" : {
@@ -47,17 +86,19 @@
         "Metadata": {
           "AWS::CloudFormation::Init" : {
             "configSets" : {
-              "Install" : [ "Install" ]
+              "InstallAndRun" : [ "Install","Enable" ]
             },
             "Install" : {
               "packages" : {
                 "apt" : {
-                  "mysql-client" : [],
-                  "mysql-server" : [],
-                  "mysql-common" : [],
-                  "apache2"      : [],
-                  "php"          : [],
-                  "php-mysql"    : []
+                  "apache2" : []
+                }
+              }
+            },
+            "Enable" : {
+              "services" : {
+                "sysvinit" : {
+                  "apache2" : { "enabled" : "true", "ensureRunning" : "true" }
                 }
               }
             }
@@ -68,6 +109,7 @@
           "InstanceType" : "t2.medium",
           "ImageId" : { "Fn::FindInMap" : [ "ImageByRegion", { "Ref" : "AWS::Region" }, "Id"] },
           "SubnetId" : { "Ref" : "mySubnet" },
+          "Tags" : [{ "Key" : "stack", "Value" : "testing" }],
           "UserData" : { "Fn::Base64" :
             { "Fn::Join" : ["", [
               "#!/bin/bash -xe\n",
@@ -81,7 +123,7 @@
               {
                   "Ref": "AWS::Region"
               },
-              "         --configsets Install ",
+              "         --configsets InstallAndRun ",
               "\n",
               "# Signal the status from cfn-init\n",
               "/opt/aws/bin/cfn-signal -e $? ",
