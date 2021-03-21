@@ -19,8 +19,12 @@
     },
     "Outputs" : {
       "InstanceID" : {
-        "Description": "The Instance ID",  
+        "Description" : "The Instance ID",  
         "Value" : { "Ref" : "myInstance" }
+      },
+      "InstanceIP" : {
+        "Description" : "Instance public IP",
+        "Value" : { "Fn::GetAtt" : [ "myInstance", "PublicIp" ] }
       }
     },
     "Resources" : {
@@ -79,8 +83,8 @@
       "mySecurityGroup" : {
         "Type" : "AWS::EC2::SecurityGroup",
         "Properties" : {
-            "GroupDescription" : "Allow SSH connections",
-            "GroupName" : "SSH-Allow",
+            "GroupDescription" : "Allow SSH and HTTP connections",
+            "GroupName" : "AllowSSH-HTTP",
             "SecurityGroupEgress" : [
               {
                 "IpProtocol" : "all",
@@ -92,6 +96,12 @@
                 "IpProtocol" : "tcp",
                 "FromPort" : 22,
                 "ToPort" : 22,
+                "CidrIp" : "0.0.0.0/0"
+              },
+              {
+                "IpProtocol" : "tcp",
+                "FromPort" : 80,
+                "ToPort" : 80,
                 "CidrIp" : "0.0.0.0/0"
               }
             ],
@@ -109,32 +119,12 @@
         "Metadata": {
           "AWS::CloudFormation::Init" : {
             "configSets" : {
-              "Config" : [ "Files" ],
-              "InstallAndRun" : [ "Install", "Enable" ]
-            },
-            "Files" : {
-              "ssh" : {
-                "files" : {
-                  "/home/ec2-user/.ssh/authorized_keys" : {
-                    "content" : "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCmxE3G4NN2Z3VAo5bJbRuvv48EGy2G5uHJqWfLOl5Ijl0fRcH9y97LfZ0C3TqQAmZuhKsqM9L62Kkfmylu7AWlAfZlp2P1NeV5fbOoGhuYUTbc4oEcaFVj4PHlnn2BFUIYkTkJ1JLs0JYcYU2LWmBrRwInRrc52XdnCNtPDfwR205Lrqbo9arWFLD9Ax0Y1X2nfe3ymo4dyw3dtqt8qPl2XYVwoXiRo5ofUXbb/7SWFfC4oDNpM8YIBm5zMT/poZ5eOKFR7OAS5lO+0lONoAtauasDT2W6bysJa9+B3nP2W5KooyWyZkm1oQP4+2k0fcPSypFkp+R5oXbgzf/CVOTd",
-                    "mode"  : "000644",
-                    "owner" : "ec2-user",
-                    "group" : "ec2-user"
-                  }
-                }
-              }
+              "InstallAndRun" : [ "Install" ]
             },
             "Install" : {
               "packages" : {
                 "yum" : {
                   "httpd" : []
-                }
-              }
-            },
-            "Enable" : {
-              "services" : {
-                "sysvinit" : {
-                  "httpd" : { "enabled" : "true", "ensureRunning" : "true" }
                 }
               }
             }
@@ -144,6 +134,7 @@
           "AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
           "InstanceType" : "t2.medium",
           "ImageId" : { "Fn::FindInMap" : [ "ImageByRegion", { "Ref" : "AWS::Region" }, "Id"] },
+          "KeyName" : "testing",
           "SubnetId" : { "Ref" : "mySubnet" },
           "SecurityGroupIds" : [ { "Ref" : "mySecurityGroup" } ],
           "Tags" : [{ "Key" : "stack", "Value" : "testing" }],
@@ -160,7 +151,7 @@
               {
                   "Ref": "AWS::Region"
               },
-              "         --configsets Config InstallAndRun ",
+              "         --configsets InstallAndRun ",
               "\n",
               "# Signal the status from cfn-init\n",
               "/opt/aws/bin/cfn-signal -e $? ",
