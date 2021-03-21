@@ -8,3 +8,8 @@ aws ec2 describe-images --owners amazon --filters "Name=name,Values=amzn*" --que
 ```
 curl http://169.254.169.254/latest/meta-data/block-device-mapping
 ```
+
+### Test stack
+```
+curl http://$(terraform output -json stack_outputs | jq -r '.InstanceIP')
+```
