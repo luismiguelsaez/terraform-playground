@@ -119,12 +119,45 @@
         "Metadata": {
           "AWS::CloudFormation::Init" : {
             "configSets" : {
-              "InstallAndRun" : [ "Install" ]
+              "InstallAndRun" : [ "Install", "Files" ]
             },
             "Install" : {
               "packages" : {
                 "yum" : {
-                  "httpd" : []
+                  "httpd"          : [],
+                  "mariadb"        : [],
+                  "mariadb-server" : [],
+                  "php"            : []
+                }
+              },
+              "services" : {
+                "sysvinit" : {
+                  "httpd" : {
+                    "enabled" : "true",
+                    "ensureRunning" : "true",
+                    "files" : ["/etc/httpd/conf/httpd.conf"],
+                    "sources" : ["/var/www/html"]
+                  }
+                }
+              }
+            },
+            "Files" : {
+              "files" : {
+                "/var/www/html/index.html" : {
+                  "content" : {
+                    "Fn::Join" : [ "",
+                      [
+                        "<html>",
+                        "<body>",
+                        "<h1>Hi there!</h1>",
+                        "</body>",
+                        "</html>"
+                      ]
+                    ]
+                  },
+                  "mode" : "000755",
+                  "owner" : "apache",
+                  "group" : "apache"
                 }
               }
             }

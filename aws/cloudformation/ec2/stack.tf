@@ -6,4 +6,10 @@ resource "aws_cloudformation_stack" "main" {
   }
 
   template_body = file("stack.json")
+
+  disable_rollback = true
+}
+
+output "stack_outputs" {
+  value = aws_cloudformation_stack.main.outputs
 }
