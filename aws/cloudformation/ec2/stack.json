@@ -39,17 +39,64 @@
       },
       "myInstance": {
         "Type" : "AWS::EC2::Instance",
-        "Properties" : {
-            "AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
-            "InstanceType" : "t2.medium",
-            "ImageId" : { "Fn::FindInMap" : [ "ImageByRegion", { "Ref" : "AWS::Region" }, "Id"] },
-            "SubnetId" : { "Ref" : "mySubnet" },
-            "UserData" : { "Fn::Base64" :
-              { "Fn::Join" : ["", [
-                 "#!/bin/bash -xe\n",
-                 "echo Dummy UserData"
-              ]]}
+        "CreationPolicy" : {
+          "ResourceSignal" : {
+            "Timeout" : "PT5M"
+          }
+        },
+        "Metadata": {
+          "AWS::CloudFormation::Init" : {
+            "configSets" : {
+              "Install" : [ "Install" ]
+            },
+            "Install" : {
+              "packages" : {
+                "apt" : {
+                  "mysql-client" : [],
+                  "mysql-server" : [],
+                  "mysql-common" : [],
+                  "apache2"      : [],
+                  "php"          : [],
+                  "php-mysql"    : []
+                }
+              }
             }
+          }
+        },
+        "Properties" : {
+          "AvailabilityZone" : { "Fn::Select" : [ 0, { "Fn::GetAZs" : { "Ref" : "AWS::Region" } } ] },
+          "InstanceType" : "t2.medium",
+          "ImageId" : { "Fn::FindInMap" : [ "ImageByRegion", { "Ref" : "AWS::Region" }, "Id"] },
+          "SubnetId" : { "Ref" : "mySubnet" },
+          "UserData" : { "Fn::Base64" :
+            { "Fn::Join" : ["", [
+              "#!/bin/bash -xe\n",
+              "/opt/aws/bin/cfn-init -v ",
+              "         --stack ",
+              {
+                  "Ref": "AWS::StackName"
+              },
+              "         --resource myInstance ",
+              "         --region ",
+              {
+                  "Ref": "AWS::Region"
+              },
+              "         --configsets Install ",
+              "\n",
+              "# Signal the status from cfn-init\n",
+              "/opt/aws/bin/cfn-signal -e $? ",
+              "         --stack ",
+              {
+                  "Ref": "AWS::StackName"
+              },
+              "         --resource myInstance ",
+              "         --region ",
+              {
+                  "Ref": "AWS::Region"
+              },
+              "\n"
+            ]]}
+          }
         }
       }
     }
