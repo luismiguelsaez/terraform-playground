@@ -14,7 +14,7 @@ variable "azs" {
 }
 
 variable "cluster_name" {
-  type = string
+  type    = string
   default = "eks-test"
 }
 
