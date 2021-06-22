@@ -1,40 +1,26 @@
-resource "aws_vpc" "main" {
-  cidr_block = "172.24.0.0/16"
-}
 
-resource "aws_subnet" "public" {
-  count = length(var.azs)
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "3.1.0"
 
-  vpc_id            = aws_vpc.main.id
-  availability_zone = var.azs[count.index]
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)
-  tags = {
-    Name = format("%s-%s", var.environment, var.azs[count.index])
-    az   = var.azs[count.index]
-  }
-}
+  name = var.environment
+  cidr = var.vpc_cidr
 
-resource "aws_security_group" "private" {
-  vpc_id = aws_vpc.main.id
+  azs             = var.azs
+  private_subnets = var.private_subnet_cidrs
+  public_subnets  = var.public_subnet_cidrs
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                      = "1"
   }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"             = "1"
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
 }

@@ -2,16 +2,36 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "17.0.3"
 
-  cluster_name    = var.cluster_name
+  cluster_name    = format("%s-%s", var.environment, var.cluster_name)
   cluster_version = var.k8s_version
 
-  cluster_create_security_group                  = true
-  cluster_endpoint_private_access                = true
-  cluster_create_endpoint_private_access_sg_rule = true
-  cluster_endpoint_private_access_cidrs          = ["37.120.141.144/32"]
-  cluster_endpoint_private_access_sg             = aws_security_group.private.id
-  cluster_service_ipv4_cidr                      = "192.168.0.0/24"
+  vpc_id  = module.vpc.vpc_id
+  subnets = module.vpc.public_subnets
 
-  vpc_id  = aws_vpc.main.id
-  subnets = aws_subnet.public.*.id
+  node_groups = {
+    web = {
+      desired_capacity = 1
+      max_capacity     = 3
+      min_capacity     = 1
+
+      instance_types = ["t3.medium"]
+      capacity_type  = "SPOT"
+      k8s_labels = {
+        Environment = var.environment
+        Selector    = "web"
+      }
+    },
+    db = {
+      desired_capacity = 1
+      max_capacity     = 3
+      min_capacity     = 1
+
+      instance_types = ["t3.medium"]
+      capacity_type  = "SPOT"
+      k8s_labels = {
+        Environment = var.environment
+        Selector    = "db"
+      }
+    }
+  }
 }
