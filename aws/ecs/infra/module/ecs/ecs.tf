@@ -71,15 +71,15 @@ resource "aws_ecs_task_definition" "web" {
 
   container_definitions = jsonencode([
     {
-      name         = "nginx"
-      image        = "nginx:alpine"
+      name         = "location"
+      image        = "luismiguelsaez/location:latest"
       cpu          = 125
       memory       = 128
       essential    = true
       portMappings = [
         {
-          containerPort = 80
-          hostPort      = 80
+          containerPort = 5000
+          hostPort      = 5000
         }
       ]
       logConfiguration = {
@@ -98,10 +98,22 @@ resource "aws_ecs_task_definition" "web" {
 
 resource "aws_lb_target_group" "web" {
   name        = format("ecs-%s-web",var.service_name)
-  port        = 80
+  port        = 5000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 5
+    interval            = 30
+    matcher             = "200"
+    path                = "/status"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 2
+  }
 }
 
 resource "aws_ecs_service" "web" {
@@ -122,8 +134,8 @@ resource "aws_ecs_service" "web" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.web.arn
-    container_name   = "nginx"
-    container_port   = 80
+    container_name   = "location"
+    container_port   = 5000
   }
 
   depends_on = [aws_lb_listener.http]

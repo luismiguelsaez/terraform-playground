@@ -3,8 +3,9 @@ resource "aws_security_group" "ecs" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
+    # Host port of the service, needed for the communication between target-group and instance
+    from_port       = 5000
+    to_port         = 5000
     protocol        = "TCP"
     security_groups = ["${aws_security_group.lb.id}"]
   }
