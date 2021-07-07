@@ -15,7 +15,7 @@ data "aws_ami" "this" {
 }
 
 resource "aws_security_group" "this" {
-  name   = "allow_ssh"
+  name   = "allow_ssh_all"
   vpc_id = var.vpc_id
 
   ingress {
@@ -39,10 +39,18 @@ resource "aws_key_pair" "this" {
   public_key = var.key_pair.public_key
 }
 
+resource "aws_iam_instance_profile" "this" {
+  name = "awslogs"
+  role = aws_iam_role.awslogs.name
+}
+
 resource "aws_instance" "this" {
   ami             = data.aws_ami.this.id
   instance_type   = var.instance_size
   key_name        = var.key_pair.name
   security_groups = [aws_security_group.this.id]
   subnet_id       = var.subnet_id
+
+  user_data            = file("files/user-data.sh")
+  iam_instance_profile = aws_iam_instance_profile.this.name
 }

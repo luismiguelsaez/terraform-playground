@@ -13,9 +13,9 @@ variable "instance_size" {
 
 variable "ami" {
   type = object({
-    name               = string
+    name                = string
     virtualization_type = string
-    owners             = list(string)
+    owners              = list(string)
   })
   default = {
     name                = "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"
