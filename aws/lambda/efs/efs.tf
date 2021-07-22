@@ -89,7 +89,7 @@ resource "aws_lambda_function" "example" {
   filename         = "lambda_function.zip"
   function_name    = "lambda-efs"
   role             = aws_iam_role.this.arn
-  handler          = "lambda_handler"
+  handler          = "lambda_function.lambda_handler"
   source_code_hash = filebase64sha256("lambda_function.zip")
 
   runtime = "python3.8"
