@@ -37,20 +37,6 @@ resource "aws_iam_policy" "this" {
         Action = [
           "elasticfilesystem:ClientMount",
           "elasticfilesystem:ClientWrite",
-          "ec2:CreateNetworkInterface",
-          "ec2:DescribeNetworkInterfaces",
-          "ec2:DeleteNetworkInterface",
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-      {
-        Action = [
-          "elasticfilesystem:ClientMount",
-          "elasticfilesystem:ClientWrite",
         ]
         Effect   = "Allow"
         Resource = aws_efs_file_system.this.arn
@@ -101,7 +87,7 @@ resource "aws_iam_role_policy_attachment" "this" {
 
 resource "aws_lambda_function" "example" {
   filename         = "lambda_function.zip"
-  function_name    = "lambda_function"
+  function_name    = "lambda-efs"
   role             = aws_iam_role.this.arn
   handler          = "lambda_handler"
   source_code_hash = filebase64sha256("lambda_function.zip")
