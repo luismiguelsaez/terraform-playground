@@ -13,4 +13,3 @@ def lambda_handler(event, context):
         c += 1
 
     return {"dir":EFS_DIR,"files":str(c)}
-c
