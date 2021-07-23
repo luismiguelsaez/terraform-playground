@@ -12,4 +12,4 @@ def lambda_handler(event, context):
     for x in os.listdir('.'):
         c += 1
 
-    return {"dir":EFS_DIR,"files":str(c)}
+    return {"dir":EFS_DIR,"files":c}

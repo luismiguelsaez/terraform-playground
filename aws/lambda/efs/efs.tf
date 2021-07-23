@@ -2,7 +2,7 @@ resource "aws_lambda_function" "example" {
   #filename         = "lambda_function.zip"
   #source_code_hash = filebase64sha256("lambda_function.zip")
   s3_bucket = format("application-%s", random_string.bucket.result)
-  s3_key    = "application/lambda_function.py"
+  s3_key    = "application/lambda_function.zip"
 
   function_name = "lambda-efs"
   role          = aws_iam_role.this.arn

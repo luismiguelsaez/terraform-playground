@@ -13,7 +13,9 @@ resource "aws_s3_bucket" "application" {
 
 resource "aws_s3_bucket_object" "function" {
   bucket = format("application-%s", random_string.bucket.result)
-  key    = "application/lambda_function.py"
-  source = "code/lambda_function.py"
-  etag   = filemd5("code/lambda_function.py")
+  key    = "application/lambda_function.zip"
+  source = "lambda_function.zip"
+  etag   = filemd5("lambda_function.zip")
+
+  depends_on = [aws_s3_bucket.application]
 }
