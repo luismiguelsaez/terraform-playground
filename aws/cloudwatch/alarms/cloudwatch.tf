@@ -1,7 +1,7 @@
 
 locals {
-  metric_namespace = "http"
-  metric_name = "HTTP5xxErrorCount"
+  metric_namespace = "apps/web/http"
+  metric_name      = "HTTP5xxErrorCount"
 }
 
 resource "aws_sns_topic" "general_alarms" {
@@ -15,7 +15,7 @@ resource "aws_sns_topic_subscription" "general_alarms_sns" {
 }
 
 resource "aws_cloudwatch_log_group" "webserver_http" {
-  name = "webserver_http"
+  name = local.metric_namespace
 }
 
 resource "aws_cloudwatch_log_metric_filter" "http_errors_5xx" {

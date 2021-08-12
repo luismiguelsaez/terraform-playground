@@ -51,6 +51,8 @@ resource "aws_instance" "this" {
   security_groups = [aws_security_group.this.id]
   subnet_id       = var.subnet_id
 
-  user_data            = file("files/user-data.sh")
+  associate_public_ip_address = true
+
+  user_data            = file(var.user_data_path)
   iam_instance_profile = aws_iam_instance_profile.this.name
 }

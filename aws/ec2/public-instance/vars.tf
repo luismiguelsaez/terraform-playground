@@ -6,6 +6,11 @@ variable "subnet_id" {
   type = string
 }
 
+variable "user_data_path" {
+  type    = string
+  default = "files/user-data.sh"
+}
+
 variable "instance_size" {
   type    = string
   default = "t2.micro"
