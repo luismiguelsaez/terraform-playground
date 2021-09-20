@@ -9,3 +9,5 @@
 *.terraform.lock.hcl
 **/terraform.tfvars
 **/*.zip
+
+**/.terragrunt-cache/
