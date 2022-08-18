@@ -38,4 +38,5 @@ resource "vault_kubernetes_auth_backend_role" "this" {
   bound_service_account_namespaces = [var.sa_namespace]
   token_ttl                        = 3600
   token_policies                   = [var.vault_policy_name]
+  token_type                       = "service"
 }
