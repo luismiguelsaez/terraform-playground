@@ -1,9 +1,20 @@
+# ECR repository auto-provision
+
+The target of these resources is the creation of ECR repositories on-demand, after the Lambda function is triggered from a push failure to a non-existent ECR repository ( Eventbridge event )
 
 ## Build lambda code package
 
 ```bash
 cd src
 zip lambda_function_payload.zip lambda_function.py
+```
+
+## Create resources
+
+```bash
+terraform validate
+terraform init
+terraform apply
 ```
 
 ## Test
