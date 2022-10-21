@@ -71,6 +71,14 @@ resource "aws_lambda_function" "ecr-repository" {
   runtime = "python3.9"
 }
 
+resource "aws_lambda_permission" "allow-eventbridge" {
+  statement_id  = "AllowExecutionFromEventbridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.ecr-repository.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.ecr-push-fail.arn
+}
+
 resource "aws_iam_role" "lambda-ecr-repository" {
   name = "ecr-repository"
 
