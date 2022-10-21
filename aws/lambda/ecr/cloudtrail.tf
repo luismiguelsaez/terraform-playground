@@ -37,25 +37,36 @@ resource "aws_cloudwatch_event_rule" "ecr-push-fail" {
 
   event_pattern = <<EOF
 {
+  "source": [
+    "aws.ecr"
+  ],
   "detail-type": [
     "AWS API Call via CloudTrail"
-  ]
+  ],
+  "detail": {
+    "eventSource": [
+      "ecr.amazonaws.com"
+    ],
+    "eventName": [
+      "InitiateLayerUpload"
+    ]
+  }
 }
 EOF
 }
 
-#resource "aws_cloudwatch_event_target" "example" {
-#  arn  = aws_lambda_function.example.arn
-#  rule = aws_cloudwatch_event_rule.ecr-push-fail.id
-#}
+resource "aws_cloudwatch_event_target" "lambda" {
+  arn  = aws_lambda_function.ecr-repository.arn
+  rule = aws_cloudwatch_event_rule.ecr-push-fail.id
+}
 
 resource "aws_lambda_function" "ecr-repository" {
-  filename      = "lambda_function_payload.zip"
-  function_name = "lambda_function_name"
+  filename      = "src/lambda_function_payload.zip"
+  function_name = "ecr-repository"
   role          = aws_iam_role.lambda-ecr-repository.arn
-  handler       = "lambda_handler"
+  handler       = "lambda_function.lambda_handler"
 
-  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  source_code_hash = filebase64sha256("src/lambda_function_payload.zip")
 
   runtime = "python3.9"
 }
@@ -92,6 +103,15 @@ EOF
               "ecr:CreateRepository"
             ],
             "Resource": "*"
+        },
+        {
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*",
+            "Effect": "Allow"
         }
     ]
 }
