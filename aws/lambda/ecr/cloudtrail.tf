@@ -38,6 +38,27 @@ resource "aws_iam_role" "cloudtrail-cloudwatch" {
       },
     ]
   })
+
+  inline_policy {
+    name = "test-cloudtrail-cloudwatch"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:DescribeLogStreams",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        }
+    ]    
+}
+EOF
+  }
 }
 
 resource "aws_s3_bucket" "ecr" {
