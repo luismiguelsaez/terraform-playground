@@ -19,9 +19,8 @@ terraform apply
 
 ## Test
 
-```
-PASS=$(aws ecr get-login-password)
-docker login -u AWS -p "$PASS" https://484308071187.dkr.ecr.eu-central-1.amazonaws.com/test
+```bash
+aws --profile lokalise-admin-dev ecr get-login-password | docker login -u AWS --password-stdin https://484308071187.dkr.ecr.eu-central-1.amazonaws.com
 
 docker pull alpine:3.12
 docker tag alpine:3.12 484308071187.dkr.ecr.eu-central-1.amazonaws.com/test/alpine:3.12
