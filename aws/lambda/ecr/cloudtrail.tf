@@ -66,6 +66,27 @@ resource "aws_s3_bucket" "ecr" {
   force_destroy = true
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "example" {
+  bucket = aws_s3_bucket.ecr.id
+
+  rule {
+    id = "all"
+
+    filter {}
+
+    status = "Enabled"
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    expiration {
+      days = 60
+    }
+  }
+}
+
 resource "aws_s3_bucket_policy" "ecr" {
   bucket = aws_s3_bucket.ecr.id
   policy = <<POLICY
