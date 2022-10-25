@@ -1,18 +1,18 @@
-resource "aws_cloudtrail" "ecr" {
-  name                          = "test-ecr"
-  s3_bucket_name                = aws_s3_bucket.ecr.id
-  s3_key_prefix                 = "prefix"
+resource "aws_cloudtrail" "this" {
+  name                          = format("%s-ecr", var.environment)
+  s3_bucket_name                = aws_s3_bucket.this.id
+  s3_key_prefix                 = "ecr"
   include_global_service_events = false
 
   enable_logging = true
-  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.ecr.arn}:*"
-  cloud_watch_logs_role_arn  = aws_iam_role.cloudtrail-cloudwatch.arn
+  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.this.arn}:*"
+  cloud_watch_logs_role_arn  = aws_iam_role.cloudwatch.arn
 
   is_multi_region_trail = false
 }
 
-resource "aws_cloudwatch_log_group" "ecr" {
-  name = "test-ecr"
+resource "aws_cloudwatch_log_group" "this" {
+  name = format("%s-ecr", var.environment)
 }
 
 resource "random_string" "random" {
@@ -22,8 +22,8 @@ resource "random_string" "random" {
   special = false
 }
 
-resource "aws_iam_role" "cloudtrail-cloudwatch" {
-  name = "test-cloudtrail-cloudwatch"
+resource "aws_iam_role" "cloudwatch" {
+  name = format("%s-ecr-cloudwatch", var.environment)
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -61,13 +61,13 @@ EOF
   }
 }
 
-resource "aws_s3_bucket" "ecr" {
-  bucket        = format("%s-test-ecr",random_string.random.result)
+resource "aws_s3_bucket" "this" {
+  bucket        = format("%s-%s-ecr", var.environment, random_string.random.result)
   force_destroy = true
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "example" {
-  bucket = aws_s3_bucket.ecr.id
+resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
 
   rule {
     id = "all"
@@ -87,8 +87,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "example" {
   }
 }
 
-resource "aws_s3_bucket_policy" "ecr" {
-  bucket = aws_s3_bucket.ecr.id
+resource "aws_s3_bucket_policy" "this" {
+  bucket = aws_s3_bucket.this.id
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -100,7 +100,7 @@ resource "aws_s3_bucket_policy" "ecr" {
               "Service": "cloudtrail.amazonaws.com"
             },
             "Action": "s3:GetBucketAcl",
-            "Resource": "${aws_s3_bucket.ecr.arn}"
+            "Resource": "${aws_s3_bucket.this.arn}"
         },
         {
             "Sid": "AWSCloudTrailWrite",
@@ -109,7 +109,7 @@ resource "aws_s3_bucket_policy" "ecr" {
               "Service": "cloudtrail.amazonaws.com"
             },
             "Action": "s3:PutObject",
-            "Resource": "${aws_s3_bucket.ecr.arn}/prefix/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+            "Resource": "${aws_s3_bucket.this.arn}/prefix/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
             "Condition": {
                 "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"

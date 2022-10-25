@@ -6,10 +6,18 @@ terraform {
       source = "hashicorp/aws"
     }
   }
+
+  
 }
 
 provider "aws" {
   region = "eu-central-1"
+
+  default_tags {
+    tags = {
+      Environment = var.environment
+    }
+  }
 }
 
 data "aws_caller_identity" "current" {}
