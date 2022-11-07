@@ -67,11 +67,13 @@ EOF
 }
 
 resource "aws_s3_bucket" "this" {
-  bucket        = format("%s-%s-ecr", var.environment, random_string.random.result)
+  bucket        = format("%s-%s-logs", random_string.random.result, var.environment)
   force_destroy = true
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  count = var.s3_bucket_lifecycle_enable ? 1 : 0
+
   bucket = aws_s3_bucket.this.id
 
   rule {
@@ -82,12 +84,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
     status = "Enabled"
 
     transition {
-      days          = 30
+      days          = var.s3_bucket_lifecycle["STANDARD_IA"]
       storage_class = "STANDARD_IA"
     }
 
     expiration {
-      days = 60
+      days = var.s3_bucket_lifecycle["DELETE"]
     }
   }
 }
