@@ -1,7 +1,12 @@
+
+locals {
+  cloudtrail_s3_key_prefix = format("cloudtrail-%s-ecr", var.environment)
+}
+
 resource "aws_cloudtrail" "this" {
   name                          = format("%s-ecr", var.environment)
   s3_bucket_name                = aws_s3_bucket.this.id
-  s3_key_prefix                 = "ecr"
+  s3_key_prefix                 = local.cloudtrail_s3_key_prefix
   include_global_service_events = false
 
   enable_logging = true
@@ -109,7 +114,7 @@ resource "aws_s3_bucket_policy" "this" {
               "Service": "cloudtrail.amazonaws.com"
             },
             "Action": "s3:PutObject",
-            "Resource": "${aws_s3_bucket.this.arn}/prefix/AWSLogs/${data.aws_caller_identity.current.account_id}/*",
+            "Resource": "${aws_s3_bucket.this.arn}/${local.cloudtrail_s3_key_prefix}/*",
             "Condition": {
                 "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
