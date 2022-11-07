@@ -1,48 +1,42 @@
 import boto3
-import json
 
 def lambda_handler(event, context):
 
-  error = False
-  message = ""
+  session = boto3.Session()
 
-  ecr = boto3.client("ecr")
+  client_ecr = session.client("ecr")
 
-  print(str(event))
+  print("Event:", str(event))
 
   if event["detail"]["errorCode"] == "RepositoryNotFoundException":
     try:
-      response = ecr.create_repository(
-        repositoryName=event["detail"]["requestParameters"]["repositoryName"],
-        tags=[
-          {
-            'Key':'auto-create',
-            'Value':'true'
+      ecr_response = client_ecr.describe_repositories()
+      repo_name = event["detail"]["requestParameters"]["repositoryName"]
+  
+      if len(list(filter(lambda x: x['repositoryName'] == repo_name, ecr_response['repositories']))) > 0:
+        response = client_ecr.create_repository(
+          repositoryName=repo_name,
+          tags=[
+            {
+              'Key':'auto-create',
+              'Value':'true'
+            }
+          ],
+          imageScanningConfiguration={
+            'scanOnPush': True
+          },
+          encryptionConfiguration={
+            'encryptionType': 'AES256'
           }
-        ],
-        imageScanningConfiguration={
-          'scanOnPush': True
-        },
-        encryptionConfiguration={
-          'encryptionType': 'AES256'
-        }
-      )
+        )
     except boto3.RepositoryAlreadyExistsException as repoException:
       error = True
-      message = "Repository [%s] already exists:%s".format(event["detail"]["requestParameters"]["repositoryName"],repoException)
+      message = "Repository [%s] already exists:%s".format(repo_name,repoException)
     except Exception as exception:
       error = True
-      message = "Error while creating repository [%s]: %s".format(event["detail"]["requestParameters"]["repositoryName"],exception)
-
-  if error:
-    return {
-      'message': message
-    }
-  else:
-    return {
-      'message': "Repository [%s] created".format(event["detail"]["requestParameters"]["repositoryName"])
-    }
-
+      message = "Error while creating repository [%s]: %s".format(repo_name,exception)
+    else:
+      return { 'message': "Repository [%s] created".format(repo_name) }
 
 
 if __name__ == "__main__":
