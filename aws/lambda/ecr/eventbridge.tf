@@ -1,6 +1,12 @@
+resource "aws_cloudwatch_event_bus" "this" {
+  name = "cloudtrail-messages"
+}
+
 resource "aws_cloudwatch_event_rule" "ecr-push-fail" {
   name        = "capture-ecr-push-fail"
   description = "Capture ECR event for failed push to repository"
+
+  event_bus_name = aws_cloudwatch_event_bus.this.name
 
   event_pattern = <<EOF
 {
