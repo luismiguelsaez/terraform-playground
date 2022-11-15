@@ -46,7 +46,8 @@ EOF
             "Sid": "CreateRepository",
             "Effect": "Allow",
             "Action": [
-              "ecr:CreateRepository"
+              "ecr:CreateRepository",
+              "ecr:DescribeRepositories"
             ],
             "Resource": "*"
         },

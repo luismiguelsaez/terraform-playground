@@ -6,7 +6,7 @@ resource "aws_cloudwatch_event_rule" "ecr-push-fail" {
   name        = "capture-ecr-push-fail"
   description = "Capture ECR event for failed push to repository"
 
-  event_bus_name = aws_cloudwatch_event_bus.this.name
+  event_bus_name = "default"
 
   event_pattern = <<EOF
 {
@@ -30,5 +30,6 @@ EOF
 
 resource "aws_cloudwatch_event_target" "lambda" {
   arn  = aws_lambda_function.ecr-repository.arn
-  rule = aws_cloudwatch_event_rule.ecr-push-fail.id
+  rule = aws_cloudwatch_event_rule.ecr-push-fail.name
+  event_bus_name = "default"
 }
